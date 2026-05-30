@@ -1,4 +1,4 @@
-# 🐄 DoodhWala App
+# 🐄 DoodhWala — Hyperlocal Milk Delivery Platform
 
 > Local milk delivery platform — connecting doodhwalas with customers
 
