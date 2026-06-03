@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +15,7 @@ interface TodaySchedule {
 
 const DoodhwalaDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'schedule' | 'orders'>('schedule');
   const [todaySchedule, setTodaySchedule] = useState<TodaySchedule | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -33,8 +35,8 @@ const DoodhwalaDashboard = () => {
   const fetchTodaySchedule = async () => {
     try {
       const { data } = await api.get('/schedules/today');
-      if (data.data) { setTodaySchedule(data.data); }
-    } catch { /* no schedule today */ }
+      if (data.data) setTodaySchedule(data.data);
+    } catch { }
   };
 
   const fetchOrders = async () => {
@@ -60,7 +62,7 @@ const DoodhwalaDashboard = () => {
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       await api.patch(`/orders/${orderId}/status`, { status });
-      toast.success(`Order ${status}!`);
+      toast.success(`Order ${status}! ✅`);
       fetchOrders();
     } catch { toast.error('Failed to update order'); }
   };
@@ -78,24 +80,39 @@ const DoodhwalaDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🐄</span>
           <span className="font-bold text-xl text-gray-800">DoodhWala</span>
           <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Doodhwala</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-600 text-sm">{user?.name}</span>
-          <button onClick={logout} className="text-sm text-red-500 hover:underline">Logout</button>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 text-sm hidden sm:block">{user?.name} 👋</span>
+          <button
+            onClick={() => navigate('/profile')}
+            className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition font-medium"
+          >
+            👤 Profile
+          </button>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="text-sm text-red-500 hover:underline"
+          >
+            Logout
+          </button>
         </div>
       </header>
 
       <div className="max-w-2xl mx-auto px-4 mt-6">
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-sm text-gray-500">Today's Orders</p>
-            <p className="text-3xl font-bold text-indigo-600">{orders.filter((o) => o.status !== 'cancelled').length}</p>
+            <p className="text-3xl font-bold text-indigo-600">
+              {orders.filter((o) => o.status !== 'cancelled').length}
+            </p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-sm">
             <p className="text-sm text-gray-500">Today's Revenue</p>
@@ -131,11 +148,11 @@ const DoodhwalaDashboard = () => {
             )}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h2 className="font-semibold text-gray-800 mb-4">
-                {todaySchedule ? 'Update Schedule' : 'Set Today\'s Schedule'}
+                {todaySchedule ? 'Update Schedule' : "Set Today's Schedule"}
               </h2>
               <form onSubmit={saveSchedule} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">📅 Date</label>
                   <input
                     type="date"
                     value={form.date}
@@ -144,7 +161,7 @@ const DoodhwalaDashboard = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Arrival Time</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">⏰ Arrival Time</label>
                   <input
                     type="time"
                     value={form.arrivalTime}
@@ -154,7 +171,7 @@ const DoodhwalaDashboard = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Available (Litres)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">🥛 Available (Litres)</label>
                     <input
                       type="number"
                       min={1}
@@ -164,7 +181,7 @@ const DoodhwalaDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price per Litre (₹)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">💰 Price per Litre (₹)</label>
                     <input
                       type="number"
                       min={1}
@@ -177,9 +194,17 @@ const DoodhwalaDashboard = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-60 flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Saving...' : todaySchedule ? 'Update Schedule' : 'Set Schedule'}
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : todaySchedule ? 'Update Schedule ✅' : 'Set Schedule 📅'}
                 </button>
               </form>
             </div>
@@ -190,9 +215,10 @@ const DoodhwalaDashboard = () => {
         {tab === 'orders' && (
           <div className="space-y-4">
             {orders.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center text-gray-400 shadow-sm">
-                <div className="text-4xl mb-2">📋</div>
-                <p>No orders yet today</p>
+              <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="text-5xl mb-3">📋</div>
+                <p className="text-gray-500 font-medium">No orders yet today</p>
+                <p className="text-gray-400 text-sm mt-1">Set your schedule so customers can order!</p>
               </div>
             ) : (
               orders.map((o) => {
@@ -203,26 +229,26 @@ const DoodhwalaDashboard = () => {
                       <div>
                         <p className="font-semibold text-gray-800">{customer?.name}</p>
                         <p className="text-sm text-gray-500">📞 {customer?.phone}</p>
-                        <p className="text-sm text-gray-500">📍 {customer?.address || 'Not set'}</p>
+                        <p className="text-sm text-gray-500">📍 {customer?.address || 'Address not set'}</p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColor[o.status]}`}>
                         {o.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{o.quantity}L · ₹{o.totalAmount}</p>
+                    <p className="text-sm text-gray-600 mb-3 font-medium">{o.quantity}L · ₹{o.totalAmount}</p>
                     {o.status === 'pending' && (
                       <div className="flex gap-2">
                         <button
                           onClick={() => updateOrderStatus(o._id, 'confirmed')}
                           className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
                         >
-                          Confirm
+                          ✅ Confirm
                         </button>
                         <button
                           onClick={() => updateOrderStatus(o._id, 'cancelled')}
                           className="flex-1 border border-red-300 text-red-500 py-2 rounded-lg text-sm font-medium hover:bg-red-50"
                         >
-                          Cancel
+                          ❌ Cancel
                         </button>
                       </div>
                     )}
@@ -231,7 +257,7 @@ const DoodhwalaDashboard = () => {
                         onClick={() => updateOrderStatus(o._id, 'delivered')}
                         className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700"
                       >
-                        Mark Delivered ✅
+                        🚚 Mark Delivered
                       </button>
                     )}
                   </div>

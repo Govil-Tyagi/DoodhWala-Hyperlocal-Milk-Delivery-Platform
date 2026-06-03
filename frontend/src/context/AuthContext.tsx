@@ -4,6 +4,7 @@ import { User, AuthState } from '../types';
 interface AuthContextType extends AuthState {
   login: (token: string, user: User) => void;
   logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -14,6 +15,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     token: null,
     isAuthenticated: false,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -26,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.clear();
       }
     }
+    setIsLoading(false);
   }, []);
 
   const login = (token: string, user: User) => {
@@ -40,7 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAuth({ user: null, token: null, isAuthenticated: false });
   };
 
-  return <AuthContext.Provider value={{ ...auth, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ ...auth, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {

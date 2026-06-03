@@ -79,3 +79,51 @@ export const getMe = async (req: Request & { user?: { userId: string } }, res: R
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+export const updateProfile = async (req: Request & { user?: { userId: string } }, res: Response): Promise<void> => {
+  try {
+    const { name, address } = req.body;
+    if (!name || name.trim().length < 2) {
+      res.status(400).json({ success: false, message: 'Valid name is required' });
+      return;
+    }
+    const user = await User.findByIdAndUpdate(
+      req.user?.userId,
+      { name: name.trim(), address: address?.trim() },
+      { new: true }
+    ).select('-password');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+    res.json({ success: true, message: 'Profile updated', data: user });
+  } catch {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+export const updatePassword = async (req: Request & { user?: { userId: string } }, res: Response): Promise<void> => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+      res.status(400).json({ success: false, message: 'Invalid password data' });
+      return;
+    }
+    const user = await User.findById(req.user?.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      res.status(401).json({ success: false, message: 'Current password is incorrect' });
+      return;
+    }
+    user.password = newPassword;
+    await user.save();
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+

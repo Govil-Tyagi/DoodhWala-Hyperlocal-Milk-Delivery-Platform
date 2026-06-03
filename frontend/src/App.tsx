@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import CustomerDashboard from './pages/CustomerDashboard';
 import DoodhwalaDashboard from './pages/DoodhwalaDashboard';
+import Profile from './pages/Profile';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 const HomeRedirect = () => {
@@ -38,6 +39,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -46,3 +55,4 @@ function App() {
 }
 
 export default App;
+

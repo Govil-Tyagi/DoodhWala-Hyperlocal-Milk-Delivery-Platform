@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +7,7 @@ import { Schedule, Order, User } from '../types';
 
 const CustomerDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [tab, setTab] = useState<'home' | 'orders'>('home');
@@ -69,9 +71,15 @@ const CustomerDashboard = () => {
           <span className="text-2xl">🐄</span>
           <span className="font-bold text-xl text-gray-800">DoodhWala</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-600 text-sm">Hi, {user?.name}</span>
-          <button onClick={logout} className="text-sm text-red-500 hover:underline">Logout</button>
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 text-sm hidden sm:block">Hi, {user?.name} 👋</span>
+          <button
+            onClick={() => navigate('/profile')}
+            className="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition font-medium"
+          >
+            👤 Profile
+          </button>
+          <button onClick={() => { logout(); navigate('/login'); }} className="text-sm text-red-500 hover:underline">Logout</button>
         </div>
       </header>
 
@@ -91,14 +99,15 @@ const CustomerDashboard = () => {
           ))}
         </div>
 
-        {/* Home - Available Doodhwalas */}
+        {/* Home Tab */}
         {tab === 'home' && (
           <div className="space-y-4">
             <h2 className="font-semibold text-gray-700">Available Today</h2>
             {schedules.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center text-gray-400 shadow-sm">
-                <div className="text-4xl mb-2">😴</div>
-                <p>No doodhwalas available today</p>
+              <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="text-5xl mb-3">😴</div>
+                <p className="text-gray-500 font-medium">No doodhwalas available today</p>
+                <p className="text-gray-400 text-sm mt-1">Check back tomorrow!</p>
               </div>
             ) : (
               schedules.map((s) => {
@@ -112,11 +121,11 @@ const CustomerDashboard = () => {
                         <p className="text-sm text-gray-500">📞 {doodhwala?.phone}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-indigo-600">₹{s.pricePerLitre}/L</p>
+                        <p className="font-bold text-indigo-600 text-lg">₹{s.pricePerLitre}/L</p>
                         <p className="text-xs text-gray-400">⏰ {s.arrivalTime}</p>
                       </div>
                     </div>
-                    <p className="text-sm text-green-600 mb-3">✅ {s.availableQuantity}L available</p>
+                    <p className="text-sm text-green-600 mb-3 font-medium">✅ {s.availableQuantity}L available</p>
                     <div className="flex gap-2 items-center">
                       <input
                         type="number"
@@ -125,7 +134,7 @@ const CustomerDashboard = () => {
                         step={0.5}
                         value={orderQty[s._id] || 1}
                         onChange={(e) => setOrderQty({ ...orderQty, [s._id]: parseFloat(e.target.value) })}
-                        className="w-24 px-3 py-2 border rounded-lg text-center"
+                        className="w-24 px-3 py-2 border rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <span className="text-sm text-gray-500">litres</span>
                       <span className="text-sm font-medium text-gray-700 ml-auto">
@@ -136,7 +145,7 @@ const CustomerDashboard = () => {
                         disabled={loading}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60"
                       >
-                        Order
+                        Order 🥛
                       </button>
                     </div>
                   </div>
@@ -151,9 +160,16 @@ const CustomerDashboard = () => {
           <div className="space-y-4">
             <h2 className="font-semibold text-gray-700">My Orders</h2>
             {orders.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center text-gray-400 shadow-sm">
-                <div className="text-4xl mb-2">📦</div>
-                <p>No orders yet</p>
+              <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+                <div className="text-5xl mb-3">📦</div>
+                <p className="text-gray-500 font-medium">No orders yet</p>
+                <p className="text-gray-400 text-sm mt-1">Order milk from the home tab!</p>
+                <button
+                  onClick={() => setTab('home')}
+                  className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700"
+                >
+                  Order Now 🥛
+                </button>
               </div>
             ) : (
               orders.map((o) => {
@@ -169,13 +185,13 @@ const CustomerDashboard = () => {
                         {o.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{o.quantity}L · ₹{o.totalAmount}</p>
+                    <p className="text-sm text-gray-600 mb-3">{o.quantity}L · ₹{o.totalAmount}</p>
                     {o.status === 'pending' && (
                       <button
                         onClick={() => cancelOrder(o._id)}
-                        className="mt-3 text-sm text-red-500 hover:underline"
+                        className="text-sm text-red-500 hover:underline border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 transition"
                       >
-                        Cancel Order
+                        ❌ Cancel Order
                       </button>
                     )}
                   </div>
