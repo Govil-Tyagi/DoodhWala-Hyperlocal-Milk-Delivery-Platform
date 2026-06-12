@@ -36,13 +36,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       data: { token, user: { id: user._id, name: user.name, role: user.role, phone: user.phone } },
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ success: false, message: 'Validation error', error: error.errors });
-      return;
-    }
-    res.status(500).json({ success: false, message: 'Server error' });
+  console.error('REGISTER ERROR:', error);
+  if (error instanceof z.ZodError) {
+    res.status(400).json({ success: false, message: 'Validation error', error: error.errors });
+    return;
   }
-};
+  res.status(500).json({ success: false, message: 'Server error' });
+}
+}
+;
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
