@@ -1,14 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import connectDB from './config/db';
 import routes from './routes';
 import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: 10 * 60 * 1000,
+  max: 10,
   message: { success: false, message: 'Too many attempts. Please try again after 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 5000;
 
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
