@@ -55,13 +55,18 @@ export const getTodaySchedule = async (req: AuthRequest, res: Response): Promise
   }
 };
 
-// Customer: get all active doodhwalas with today's schedule
 export const getActiveDoodhwalas = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const schedules = await Schedule.find({ date: today, isActive: true })
+
+    const schedules = await Schedule.find({
+      date: { $gte: today },
+      isActive: true,
+    })
+      .sort({ date: 1 })
       .populate('doodhwalaId', 'name phone address');
+
     res.json({ success: true, message: 'Active doodhwalas', data: schedules });
   } catch {
     res.status(500).json({ success: false, message: 'Server error' });
